@@ -1,32 +1,60 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 
-st.title("☀️ ILLARI JULLS")
-st.subheader("Tu Sol a tu Medida - Juliaca / Puno")
-st.write("Calculamos tu kit exacto según lo que quieres prender.")
+st.title("☀️ ILLARY - QORI SOLAR")
+st.subheader("Tu Sol a tu Medida - Proyecto UNAJ Juliaca")
+st.write("Proyecto: Full Power Julls APA | HSP 5.9 SENAMHI | EPIER - UNAJ")
 
-st.markdown("### 1️⃣ ¿Qué quieres prender?")
+equipos = {
+    "Foco LED 9W": 9,
+    "TV 60W": 60,
+    "Laptop 65W": 65,
+    "Celular 10W": 10,
+    "Refrigeradora 100W": 100,
+    "Bomba 500W": 500,
+}
 
-if "df" not in st.session_state:
-    st.session_state.df = pd.DataFrame([
-        {"Equipo": "Foco LED", "Potencia (W)": 9, "Horas/día": 5, "Cantidad": 4},
-        {"Equipo": "TV", "Potencia (W)": 60, "Horas/día": 4, "Cantidad": 1},
-        {"Equipo": "Cargador celular", "Potencia (W)": 10, "Horas/día": 3, "Cantidad": 3},
-    ])
+if "lista" not in st.session_state:
+    st.session_state.lista = []
 
-df = st.data_editor(st.session_state.df, num_rows="dynamic", use_container_width=True)
-st.session_state.df = df
+st.markdown("### Equipo")
+equipo = st.selectbox("Equipo", list(equipos.keys()))
+cant = st.number_input("Cantidad", 1, 20, 1)
+horas = st.number_input("Horas", 1, 24, 5)
 
-df["Energía (Wh/día)"] = df["Potencia (W)"] * df["Horas/día"] * df["Cantidad"]
-total_wh = df["Energía (Wh/día)"].sum()
+if st.button("Agregar"):
+    w = equipos[equipo]
+    st.session_state.lista.append({"Equipo": equipo, "Cant": cant, "Horas": horas, "W": w, "Wh/dia": cant * horas * w})
 
-st.markdown(f"### Consumo total: **{total_wh:.0f} Wh/día**")
+if st.session_state.lista:
+    df = pd.DataFrame(st.session_state.lista)
+    st.dataframe(df, use_container_width=True)
 
-hsp = st.slider("Horas de sol en Juliaca (HSP)", 4.0, 6.5, 5.9)
-potencia_panel = total_wh / hsp
+    total = df["Wh/dia"].sum()
+    st.markdown("Consumo total")
+    st.markdown(f"## {total:.0f} Wh/dia")
 
-st.success(f"Necesitas un panel de **{potencia_panel:.0f} W**")
-st.info("Este es el cálculo exacto, sin catálogo comercial. Es el Prototipo 1 - el original.")
+    hsp = 5.9
+    panel = total / hsp * 1.35
+    bateria = total / 12 * 2
+    potencia_max = (df["W"] * df["Cant"]).sum()
+    inversor = potencia_max * 1.25
 
-st.markdown("### Tabla de consumo")
-st.dataframe(df, use_container_width=True)
+    if total < 300:
+        kit = "BASICO"
+    elif total < 800:
+        kit = "INTERMEDIO"
+    else:
+        kit = "COMPLETO"
+
+    st.write(f"Panel: {panel:.0f}W")
+    st.write(f"Bateria: {bateria:.0f}Ah")
+    st.write(f"Inversor: {inversor:.0f}W")
+    st.write(f"Kit: {kit}")
+
+    fig, ax = plt.subplots()
+    ax.pie(df["Wh/dia"], labels=df["Equipo"], autopct='%1.1f%%')
+    st.pyplot(fig)
+else:
+    st.write("Elige un equipo y dale a Agregar")
