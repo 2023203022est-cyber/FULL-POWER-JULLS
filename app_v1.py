@@ -53,6 +53,12 @@ if st.session_state.lista:
     st.write(f"Inversor: {inversor:.0f}W")
     st.write(f"Kit: {kit}")
 
+    # --- LO ÚNICO NUEVO ES ESTO ---
+    codigo = f"P{panel:.0f}-B{bateria:.0f}-I{inversor:.0f}"
+    st.success("👇 COPIA ESTE CODIGO Y PEGALO EN LA APP 2")
+    st.code(codigo)
+    # --- HASTA AQUÍ LO NUEVO ---
+
     fig, ax = plt.subplots()
     ax.pie(df["Wh/dia"], labels=df["Equipo"], autopct='%1.1f%%')
     st.pyplot(fig)
